@@ -8,6 +8,7 @@ const singleRange = () => {
   const slider = getEl('slider');
   const selected = getEl('selected');
   const load = getEl('.load');
+  const layout = getEl('.layout');
 
 
   //  ! Lowest function abstruction level
@@ -22,7 +23,7 @@ const singleRange = () => {
   };
 
 
-  //  Fast function to get element by Id or class name:
+  //  Fast function to get element by Id or class name
 
   function getEl(el, area = document) {
     if (typeof el === 'string') {
@@ -54,7 +55,7 @@ const singleRange = () => {
     slider.style.cursor = 'grab';
   }
 
-
+  //  !! Next level of function abstraction
   //  Function which is describing the main event: moving alider along the range
 
   function moveSlider(evt) {
@@ -64,15 +65,17 @@ const singleRange = () => {
     let shiftSlider = evt.pageX - sliderCoords.left;  // correct shift of the slider relatively the range
     let fullSlider = evt.pageX - rangeCoords.left - (sliderCoordsWidth - 8);
 
-
-    if (fullSlider < 0) {  // stay slider inside the range
+    // stay slider inside the range
+    if (fullSlider < 0) {
       fullSlider = 0
     } else if (fullSlider > rangeCoords.width) {
       fullSlider = rangeCoords.width - sliderCoords.width + 5;
     }
 
     slider.style.cursor = 'grabbing';
+    // moving slider itself
     slider.style.marginLeft = parseInt(fullSlider) + 'px';
+    // show selected range
     selected.style.width = parseInt(fullSlider) + 'px';
 
     displayProgress();
@@ -88,17 +91,20 @@ const singleRange = () => {
     const difference = 16;
     let step = (fullRange - difference) / 100;
     let loadResult = parseInt(selectedRange / step);
+    let brightness = loadResult / 100;
 
     if (loadResult > 100) {
       loadResult = 100;
     } else if (loadResult < 0) {
       loadResult = 0;
     }
-
+    //  display percentages
     load.innerHTML = loadResult + '%';
+    //  brightness level
+    layout.style.background = `rgba(0,0,0,${brightness})`;
   }
 
-  
+
   //  Start slider
 
   slider.addEventListener('mousedown', down);
@@ -111,16 +117,15 @@ singleRange();
 ///////////////////////////// Double Range /////////////////////////////////////
 
 const doubleRange = () => {
-  //  Забираем необходимые DOM-элементы для манипуляции
+  //  Needed DOM-elements to work with
+  const range = document.querySelector('#range'); //  range scale
+  const selectedRange = document.querySelector('#selected-range');  //  selected range
+  const slider1 = document.getElementById('slider1'); //  first slider
+  const slider2 = document.getElementById('slider2'); // second slider
 
-  const range = document.querySelector('#range'); //  шкала
-  const selectedRange = document.querySelector('#selected-range');  //  пройденная шкала
-  const slider1 = document.getElementById('slider1'); //  левый ползунок
-  const slider2 = document.getElementById('slider2'); // правый ползунок
 
-
-  //  ! Самый низкий уровень абстракции
-  //  Получение координотов элемента
+  //  ! Lowest function abstruction level
+  //  Get element's coordinates
 
   function getCoords(elem){
     let box = elem.getBoundingClientRect();
@@ -132,7 +137,7 @@ const doubleRange = () => {
   };
 
 
-  //  Получение элемента по id или селектору:
+  //  Fast function to get element by Id or class name
 
   function getEl(el, area = document) {
     if (typeof el === 'string') {
@@ -149,31 +154,32 @@ const doubleRange = () => {
   }
 
 
-  //  Работа первого ползунка
+  //  Move first slider
 
   slider1.addEventListener('mousedown', function(evt) {
-    let rangeCoords = getCoords(range); // размеры шкалы
-    let sliderCoords1 = getCoords(slider1); // размер левого ползунка
-    let sliderCoords2 = getCoords(slider2); // размер правого ползунка
-    let shiftX1 = evt.pageX - sliderCoords1.left; // размер смещения левого ползунка без размера кнопки
-    let shiftX2 = evt.pageX - sliderCoords2.left; // размер смещения правого ползунка без размера кнопки
+    let rangeCoords = getCoords(range); // range scale coordinates
+    let sliderCoords1 = getCoords(slider1); // fisrt slider coordinates
+    let sliderCoords2 = getCoords(slider2); // second slider coordinates
+    let shiftX1 = evt.pageX - sliderCoords1.left; // left shift without left slider
+    let shiftX2 = evt.pageX - sliderCoords2.left; // right shift without right slider
 
     function slider1Moving(evt) {
-      let slider1Move = evt.pageX - shiftX1 - rangeCoords.left; // расстояние перетаскивания ползунка
-      let rangeWithoutSlider1 = range.offsetWidth - slider1.offsetWidth; // длина шкалы без ширины левого ползунка
+      let slider1Move = evt.pageX - shiftX1 - rangeCoords.left; // first slider moving distance
+      let rangeWithoutSlider1 = range.offsetWidth - slider1.offsetWidth; // scale width without fisrt slider's width
 
-      // условия, чтобы ползунок не выходил за пределы диапазона
+      //  hold slider inside the range
       if (slider1Move < 0) slider1Move = 0;
       if (slider1Move > rangeWithoutSlider1) slider1Move = rangeWithoutSlider1;
 
-      // перемещение самого ползунка
+      //  move first slider itself
       slider1.style.marginLeft = slider1Move + 'px';
 
-      //  отслеживание смещения правого ползунка
+      //  check second slider coordinates
       shiftX2 = evt.pageX - sliderCoords2.left;
       let slider2Move = evt.pageX - shiftX2 - rangeCoords.left;
       let rangeWithoutSlider2 = range.offsetWidth - slider2.offsetWidth;
 
+      //  show and control selected range from first slider
       if (slider1Move > slider2Move) {
         selectedRange.style.width = '0';
         //selectedRange.style.marginLeft = slider2Move + 'px';
@@ -194,31 +200,31 @@ const doubleRange = () => {
   });
 
 
-  // Работа правого ползунка
+  // Move second slider
 
   slider2.addEventListener('mousedown', function(evt) {
-    let rangeCoords = getCoords(range); //  размеры шкалы
-    let sliderCoords1 = getCoords(slider1); //  размер левого ползунка
-    let sliderCoords2 = getCoords(slider2); //  размер правого ползунка
-    let shiftX1 = evt.pageX - sliderCoords1.left; // размер смещения левого ползунка без размера кнопки
-    let shiftX2 = evt.pageX - sliderCoords2.left; //  размер смещения правого ползунка без размера кнопки
+    let rangeCoords = getCoords(range); //  range scale coordinates
+    let sliderCoords1 = getCoords(slider1); //  fisrt slider coordinates
+    let sliderCoords2 = getCoords(slider2); //  second slider coordinates
+    let shiftX1 = evt.pageX - sliderCoords1.left; // left shift without left slider
+    let shiftX2 = evt.pageX - sliderCoords2.left; //  right shift without right slider
 
 
     function slider2Moving(evt) {
-      let slider2Move = evt.pageX - shiftX2 - rangeCoords.left;//расстояние перетаскивания ползунка
-      let rangeWithoutSlider2 = range.offsetWidth - slider2.offsetWidth;//длина шкалы без ширины левого ползунка
+      let slider2Move = evt.pageX - shiftX2 - rangeCoords.left; // second slider moving distance
+      let rangeWithoutSlider2 = range.offsetWidth - slider2.offsetWidth;  //  scale width without second slider's width
 
-      //  условия, чтобы ползунок не выходил за пределы диапазона
+      //  hold slider inside the range
       if (slider2Move < 0 ) slider2Move = 0;
       if (slider2Move > rangeWithoutSlider2) slider2Move = rangeWithoutSlider2;
 
-      slider2.style.left = slider2Move + 'px';  //  перемещение самого ползунка
-
-      //  отслеживание смещения правого ползунка
+      //  move second slider itself
+      slider2.style.left = slider2Move + 'px';
       shiftX1 = evt.pageX - sliderCoords1.left;
       let slider1Move = evt.pageX - shiftX1 - rangeCoords.left;
       let rangeWithoutSlider1 = range.offsetWidth - slider1.offsetWidth;
 
+      //  show and control selected range to second slider
       if (slider1Move > slider2Move) {
         selectedRange.style.width = '0';
         selectedRange.style.marginLeft = slider2Move + 'px';
