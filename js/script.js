@@ -3,13 +3,15 @@
 /////////////////////////////////////Single Range///////////////////////////////
 
 const singleRange = () => {
-  //  DOM-элементы для работы с ними
-  let slider = getEl('slider');
-  let range = getEl('.range');
-  let selected = getEl('selected');
+  //  DOM-elements to work with
+  const range = getEl('.range');
+  const slider = getEl('slider');
+  const selected = getEl('selected');
+  const load = getEl('.load');
 
-  //  ! Самый низкий уровень абстракции
-  //  Получение координотов элемента
+
+  //  ! Lowest function abstruction level
+  //  Get element's coordinates
   function getCoords(elem){
     let box = elem.getBoundingClientRect();
     return {
@@ -20,7 +22,7 @@ const singleRange = () => {
   };
 
 
-  //  Получение элемента по id или селектору:
+  //  Fast function to get element by Id or class name:
 
   function getEl(el, area = document) {
     if (typeof el === 'string') {
@@ -38,12 +40,14 @@ const singleRange = () => {
 
 
   function down() {
-    document.addEventListener('mouseup', stopSlider);  //  при отпускании клавиши убираем прослушку событий (полузунок больше не реагирует на перемещение мыши)
-    document.addEventListener('mousemove', moveSlider);  //  Основное соблытие : перемещение при нажатии на левую кнопку мыши и перемещение
+    //  Remove mousemove event when mouse button is pressed up
+    document.addEventListener('mouseup', stopSlider);
+    //  Main event: when mouse button is pressed down and moving along
+    document.addEventListener('mousemove', moveSlider);
   }
 
 
-  //  При отпускании клавиши убираем прослушку событий (полузунок больше не реагирует на перемещение мыши
+  //  stop moving slider when button is pressed up
 
   function stopSlider() {
     document.removeEventListener('mousemove', moveSlider);
@@ -51,17 +55,17 @@ const singleRange = () => {
   }
 
 
-  //  Основное событие : перемещение при нажатии на левую кнопку мыши и перемещение
+  //  Function which is describing the main event: moving alider along the range
 
   function moveSlider(evt) {
-    let rangeCoords = getCoords(range);  //  запрашиваем координаты слайдера через функцию getCoods
-    let sliderCoords = getCoords(slider);  //  запрашиваем координаты ползунка через функцию getCoods
+    let rangeCoords = getCoords(range);  //  get range coordinates 'getCoords' function
+    let sliderCoords = getCoords(slider);  //  get slider coordinates with 'getCoords' function
     let sliderCoordsWidth = sliderCoords.width;
-    let shiftSlider = evt.pageX - sliderCoords.left;  // корректируем расстояние смещения ползунка без учета его ширины
+    let shiftSlider = evt.pageX - sliderCoords.left;  // correct shift of the slider relatively the range
     let fullSlider = evt.pageX - rangeCoords.left - (sliderCoordsWidth - 8);
 
 
-    if (fullSlider < 0) {  //условия, чтобы ползунок не выходил за пределы диапазона
+    if (fullSlider < 0) {  // stay slider inside the range
       fullSlider = 0
     } else if (fullSlider > rangeCoords.width) {
       fullSlider = rangeCoords.width - sliderCoords.width + 5;
@@ -70,10 +74,32 @@ const singleRange = () => {
     slider.style.cursor = 'grabbing';
     slider.style.marginLeft = parseInt(fullSlider) + 'px';
     selected.style.width = parseInt(fullSlider) + 'px';
+
+    displayProgress();
   }
 
 
-  //  Вешаем обработчик события нажатия на левую кнопку мыши на ползунок
+  //  Display progress
+
+  function displayProgress() {
+    let fullSlider = getCoords(slider).width;
+    let fullRange = getCoords(range).width;
+    let selectedRange = getCoords(selected).width;
+    const difference = 16;
+    let step = (fullRange - difference) / 100;
+    let loadResult = parseInt(selectedRange / step);
+
+    if (loadResult > 100) {
+      loadResult = 100;
+    } else if (loadResult < 0) {
+      loadResult = 0;
+    }
+
+    load.innerHTML = loadResult + '%';
+  }
+
+
+  //  Start slider
 
   slider.addEventListener('mousedown', down);
 }
