@@ -98,7 +98,7 @@ const singleRange = () => {
     load.innerHTML = loadResult + '%';
   }
 
-
+  
   //  Start slider
 
   slider.addEventListener('mousedown', down);
